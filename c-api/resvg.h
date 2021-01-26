@@ -140,6 +140,11 @@ typedef struct resvg_size {
 
 /**
  * @brief A 2D transform representation.
+ *
+ * format:
+ * [ a c e ]
+ * [ b d f ]
+ * [ 0 0 1 ]
  */
 typedef struct resvg_transform {
     double a;
