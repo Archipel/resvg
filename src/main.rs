@@ -85,7 +85,7 @@ fn query_all(tree: &usvg::Tree) -> Result<(), String> {
             (v * 1000.0).round() / 1000.0
         }
 
-        if let Some(bbox) = node.calculate_bbox() {
+        if let Some(bbox) = node.calculate_bbox(true) {
             println!(
                 "{},{},{},{},{}", node.id(),
                 round_len(bbox.x()), round_len(bbox.y()),
@@ -106,7 +106,7 @@ fn render_svg(args: Args, tree: &usvg::Tree, out_png: &path::Path) -> Result<(),
 
     let img = if let Some(ref id) = args.export_id {
         if let Some(node) = tree.root().descendants().find(|n| &*n.id() == id) {
-            let bbox = node.calculate_bbox()
+            let bbox = node.calculate_bbox(true)
                 .ok_or_else(|| "node has zero size".to_string())?;
 
             let size = args.fit_to.fit_to(bbox.to_screen_size())
