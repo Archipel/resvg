@@ -442,6 +442,10 @@ bool resvg_node_exists(const resvg_render_tree *tree,
 bool resvg_get_node_transform(const resvg_render_tree *tree,
                               const char *id,
                               resvg_transform *ts);
+bool resvg_get_node_transform2(const resvg_render_tree *tree,
+                               const char *id,
+                               resvg_transform *ts,
+                               bool apply_parent_transform);
 
 /**
  * @brief Returns node's bounding box by ID.

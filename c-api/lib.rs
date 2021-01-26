@@ -9,7 +9,7 @@ use std::os::raw::c_char;
 use std::slice;
 
 use log::warn;
-use usvg::{NodeExt, SystemFontDB};
+use usvg::{NodeExt, SystemFontDB, Transform};
 
 
 enum ErrorId {
@@ -487,10 +487,11 @@ pub extern "C" fn resvg_node_exists(
 }
 
 #[no_mangle]
-pub extern "C" fn resvg_get_node_transform(
+pub extern "C" fn resvg_get_node_transform2(
     tree: *const resvg_render_tree,
     id: *const c_char,
     ts: *mut resvg_transform,
+    apply_parent_transform: bool
 ) -> bool {
     let id = match cstr_to_str(id) {
         Some(v) => v,
@@ -506,7 +507,7 @@ pub extern "C" fn resvg_get_node_transform(
     };
 
     if let Some(node) = tree.0.node_by_id(id) {
-        let mut abs_ts = node.abs_transform();
+        let mut abs_ts = if apply_parent_transform {node.abs_transform()} else {Transform::default()};
         abs_ts.append(&node.transform());
 
         unsafe {
@@ -524,6 +525,15 @@ pub extern "C" fn resvg_get_node_transform(
     }
 
     false
+}
+
+#[no_mangle]
+pub extern "C" fn resvg_get_node_transform(
+    tree: *const resvg_render_tree,
+    id: *const c_char,
+    ts: *mut resvg_transform,
+) -> bool {
+    resvg_get_node_transform2(tree, id, ts, true)
 }
 
 pub fn cstr_to_str(text: *const c_char) -> Option<&'static str> {
