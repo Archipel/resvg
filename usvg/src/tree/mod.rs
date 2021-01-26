@@ -203,7 +203,7 @@ pub trait NodeExt {
     /// Calculates node's absolute bounding box.
     ///
     /// Can be expensive on large paths and groups.
-    fn calculate_bbox(&self) -> Option<Rect>;
+    fn calculate_bbox(&self, apply_parent_transforms: bool) -> Option<Rect>;
 
     /// Returns the node starting from which the filter background should be rendered.
     fn filter_background_start_node(&self, filter: &Filter) -> Option<Node>;
@@ -257,8 +257,13 @@ impl NodeExt for Node {
     }
 
     #[inline]
-    fn calculate_bbox(&self) -> Option<Rect> {
-        calc_node_bbox(self, self.abs_transform())
+    fn calculate_bbox(&self, apply_parent_transforms: bool) -> Option<Rect> {
+        if apply_parent_transforms {
+            calc_node_bbox(self, self.abs_transform())
+        }
+        else {
+            calc_node_bbox(self, Transform::default())
+        }
     }
 
     fn filter_background_start_node(&self, filter: &Filter) -> Option<Node> {

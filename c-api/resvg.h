@@ -452,6 +452,11 @@ bool resvg_get_node_bbox(const resvg_render_tree *tree,
                          const char *id,
                          resvg_rect *bbox);
 
+bool resvg_get_node_bbox2(const resvg_render_tree *tree,
+                         const char *id,
+                         resvg_rect *bbox,
+                         bool apply_parent_transform);
+
 /**
  * @brief Destroys the #resvg_render_tree.
  */

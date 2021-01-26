@@ -391,7 +391,7 @@ pub extern "C" fn resvg_get_image_bbox(
         &*tree
     };
 
-    if let Some(r) = tree.0.root().calculate_bbox() {
+    if let Some(r) = tree.0.root().calculate_bbox(true) {
         unsafe {
             *bbox = resvg_rect {
                 x: r.x(),
@@ -408,10 +408,11 @@ pub extern "C" fn resvg_get_image_bbox(
 }
 
 #[no_mangle]
-pub extern "C" fn resvg_get_node_bbox(
+pub extern "C" fn resvg_get_node_bbox2(
     tree: *const resvg_render_tree,
     id: *const c_char,
     bbox: *mut resvg_rect,
+    apply_parent_transform: bool
 ) -> bool {
     let id = match cstr_to_str(id) {
         Some(v) => v,
@@ -433,7 +434,7 @@ pub extern "C" fn resvg_get_node_bbox(
 
     match tree.0.node_by_id(id) {
         Some(node) => {
-            if let Some(r) = node.calculate_bbox() {
+            if let Some(r) = node.calculate_bbox(apply_parent_transform) {
                 unsafe {
                     *bbox = resvg_rect {
                         x: r.x(),
@@ -453,6 +454,15 @@ pub extern "C" fn resvg_get_node_bbox(
             false
         }
     }
+}
+
+#[no_mangle]
+pub extern "C" fn resvg_get_node_bbox(
+    tree: *const resvg_render_tree,
+    id: *const c_char,
+    bbox: *mut resvg_rect
+) -> bool {
+    return resvg_get_node_bbox2(tree, id, bbox, true);
 }
 
 #[no_mangle]
