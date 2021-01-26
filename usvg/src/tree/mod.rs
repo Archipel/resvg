@@ -205,6 +205,9 @@ pub trait NodeExt {
     /// Can be expensive on large paths and groups.
     fn calculate_bbox(&self, apply_parent_transforms: bool) -> Option<Rect>;
 
+    /// Calculates node's bounding box before applying any transformation
+    fn calculate_bbox_without_transformation(&self) -> Option<Rect>;
+
     /// Returns the node starting from which the filter background should be rendered.
     fn filter_background_start_node(&self, filter: &Filter) -> Option<Node>;
 }
@@ -264,6 +267,11 @@ impl NodeExt for Node {
         else {
             calc_node_bbox(self, Transform::default())
         }
+    }
+
+    #[inline]
+    fn calculate_bbox_without_transformation(&self) -> Option<Rect> {
+        calc_node_bbox_without_transformation(self)
     }
 
     fn filter_background_start_node(&self, filter: &Filter) -> Option<Node> {
@@ -330,13 +338,11 @@ fn deflate(data: &[u8]) -> Result<String, Error> {
     Ok(decoded)
 }
 
-fn calc_node_bbox(
-    node: &Node,
-    ts: Transform,
-) -> Option<Rect> {
-    let mut ts2 = ts;
-    ts2.append(&node.transform());
 
+fn calc_node_bbox_internal(
+    node: &Node,
+    ts2: Transform,
+) -> Option<Rect> {
     match *node.borrow() {
         NodeKind::Path(ref path) => {
             path.data.bbox_with_transform(ts2, path.stroke.as_ref())
@@ -358,4 +364,17 @@ fn calc_node_bbox(
         }
         _ => None,
     }
+}
+
+fn calc_node_bbox_without_transformation(node: &Node) -> Option<Rect> {
+    calc_node_bbox_internal(node, Transform::default())
+}
+
+fn calc_node_bbox(
+    node: &Node,
+    ts: Transform,
+) -> Option<Rect> {
+    let mut ts2 = ts;
+    ts2.append(&node.transform());
+    calc_node_bbox_internal(node, ts2)
 }

@@ -447,8 +447,12 @@ bool resvg_get_node_transform2(const resvg_render_tree *tree,
                                resvg_transform *ts,
                                bool apply_parent_transform);
 
+bool resvg_set_node_transform(const resvg_render_tree *tree,
+                              const char *id,
+                              const resvg_transform *ts);
+
 /**
- * @brief Returns node's bounding box by ID.
+ * @brief Returns node's bounding box by ID. The node's transformation and all its parent transformations are applied.
  *
  * @param tree Render tree.
  * @param id Node's ID.
@@ -461,10 +465,16 @@ bool resvg_get_node_bbox(const resvg_render_tree *tree,
                          const char *id,
                          resvg_rect *bbox);
 
+//! @brief Returns node's bounding box by ID. The node's transformation is applied, its parent transformations are applied if apply_parent_transform = true.
 bool resvg_get_node_bbox2(const resvg_render_tree *tree,
-                         const char *id,
-                         resvg_rect *bbox,
-                         bool apply_parent_transform);
+                          const char *id,
+                          resvg_rect *bbox,
+                          bool apply_parent_transform);
+
+//! @brief Returns node's bounding box by ID before applying any transformation, not even the current node's (child transformations are of course applied).
+bool resvg_get_node_bbox_before_transform(const resvg_render_tree *tree,
+                                          const char *id,
+                                          resvg_rect *bbox);
 
 /**
  * @brief Destroys the #resvg_render_tree.

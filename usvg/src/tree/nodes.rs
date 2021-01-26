@@ -2,7 +2,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use std::ops::Deref;
+use std::ops::{Deref, DerefMut};
 use std::rc::Rc;
 
 use crate::geom::*;
@@ -67,6 +67,23 @@ impl NodeKind {
             NodeKind::Path(ref e) => e.transform,
             NodeKind::Image(ref e) => e.transform,
             NodeKind::Group(ref e) => e.transform,
+        }
+    }
+
+    /// set the node's transform matrix
+    pub fn set_transform(&mut self, transform: &Transform) {
+        match *self {
+            NodeKind::Svg(_) => { },
+            NodeKind::Defs => { },
+            NodeKind::LinearGradient(ref mut e) => e.transform = *transform,
+            NodeKind::RadialGradient(ref mut e) => e.transform = *transform,
+            NodeKind::ClipPath(ref mut e) => e.transform = *transform,
+            NodeKind::Mask(_) => { },
+            NodeKind::Pattern(ref mut e) => e.transform = *transform,
+            NodeKind::Filter(_) => { },
+            NodeKind::Path(ref mut e) => e.transform = *transform,
+            NodeKind::Image(ref mut e) => e.transform = *transform,
+            NodeKind::Group(ref mut e) => e.transform = *transform,
         }
     }
 }
@@ -291,6 +308,13 @@ impl Deref for LinearGradient {
     }
 }
 
+impl DerefMut for LinearGradient {
+
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        return &mut self.base
+    }
+}
+
 
 /// A radial gradient.
 ///
@@ -319,6 +343,12 @@ impl Deref for RadialGradient {
 
     fn deref(&self) -> &Self::Target {
         &self.base
+    }
+}
+
+impl DerefMut for RadialGradient {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        return &mut self.base
     }
 }
 

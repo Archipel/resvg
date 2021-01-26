@@ -407,12 +407,12 @@ pub extern "C" fn resvg_get_image_bbox(
     }
 }
 
-#[no_mangle]
-pub extern "C" fn resvg_get_node_bbox2(
+fn resvg_get_node_bbox3(
     tree: *const resvg_render_tree,
     id: *const c_char,
     bbox: *mut resvg_rect,
-    apply_parent_transform: bool
+    apply_parent_transform: bool,
+    apply_node_transformation: bool
 ) -> bool {
     let id = match cstr_to_str(id) {
         Some(v) => v,
@@ -434,7 +434,14 @@ pub extern "C" fn resvg_get_node_bbox2(
 
     match tree.0.node_by_id(id) {
         Some(node) => {
-            if let Some(r) = node.calculate_bbox(apply_parent_transform) {
+            if let Some(r) = {
+                if apply_node_transformation {
+                    node.calculate_bbox(apply_parent_transform)
+                }
+                else {
+                    node.calculate_bbox_without_transformation()
+                }
+            } {
                 unsafe {
                     *bbox = resvg_rect {
                         x: r.x(),
@@ -457,12 +464,31 @@ pub extern "C" fn resvg_get_node_bbox2(
 }
 
 #[no_mangle]
+pub extern "C" fn resvg_get_node_bbox2(
+    tree: *const resvg_render_tree,
+    id: *const c_char,
+    bbox: *mut resvg_rect,
+    apply_parent_transform: bool
+) -> bool {
+    return resvg_get_node_bbox3(tree, id, bbox, apply_parent_transform, true);
+}
+
+#[no_mangle]
 pub extern "C" fn resvg_get_node_bbox(
     tree: *const resvg_render_tree,
     id: *const c_char,
     bbox: *mut resvg_rect
 ) -> bool {
     return resvg_get_node_bbox2(tree, id, bbox, true);
+}
+
+#[no_mangle]
+pub extern "C" fn resvg_get_node_bbox_before_transform(
+    tree: *const resvg_render_tree,
+    id: *const c_char,
+    bbox: *mut resvg_rect
+) -> bool {
+    return resvg_get_node_bbox3(tree, id, bbox, false, false);
 }
 
 #[no_mangle]
@@ -484,6 +510,40 @@ pub extern "C" fn resvg_node_exists(
     };
 
     tree.0.node_by_id(id).is_some()
+}
+
+#[no_mangle]
+pub extern "C" fn resvg_set_node_transform(
+    tree: *const resvg_render_tree,
+    id: *const c_char,
+    ts: *const resvg_transform
+) -> bool {
+    let id = match cstr_to_str(id) {
+        Some(v) => v,
+        None => {
+            warn!("Provided ID is no an UTF-8 string.");
+            return false;
+        }
+    };
+
+    let tree = unsafe {
+        assert!(!tree.is_null());
+        &*tree
+    };
+
+    if let Some(mut node) = tree.0.node_by_id(id) {
+        let mut node = node.borrow_mut();
+        let ts = unsafe {
+            assert!(!ts.is_null());
+            &*ts
+        };
+        let tr = Transform::new(ts.a, ts.b, ts.c, ts.d, ts.e, ts.f);
+        node.set_transform(&tr);
+
+        return true;
+    }
+
+    false
 }
 
 #[no_mangle]
