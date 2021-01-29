@@ -8,6 +8,7 @@ use std::rc::Rc;
 use crate::geom::*;
 use super::attributes::*;
 use super::pathdata::PathData;
+use crate::Visibility::Visible;
 
 // TODO: implement Default for all
 
@@ -72,20 +73,38 @@ impl NodeKind {
 
     /// set the node's transform matrix
     pub fn set_transform(&mut self, transform: &Transform) {
-        match *self {
-            NodeKind::Svg(_) => { },
-            NodeKind::Defs => { },
+        match self {
             NodeKind::LinearGradient(ref mut e) => e.transform = *transform,
             NodeKind::RadialGradient(ref mut e) => e.transform = *transform,
             NodeKind::ClipPath(ref mut e) => e.transform = *transform,
-            NodeKind::Mask(_) => { },
             NodeKind::Pattern(ref mut e) => e.transform = *transform,
-            NodeKind::Filter(_) => { },
             NodeKind::Path(ref mut e) => e.transform = *transform,
             NodeKind::Image(ref mut e) => e.transform = *transform,
             NodeKind::Group(ref mut e) => e.transform = *transform,
+            kind => panic!("Visibility cannot be set on an {:?}", kind)
         }
     }
+
+    /// set the node's visibility
+    pub fn set_visibility(&mut self, visibility: Visibility) {
+        match self {
+            NodeKind::Path(ref mut e) => e.visibility = visibility,
+            NodeKind::Image(ref mut e) => e.visibility = visibility,
+            NodeKind::Group(ref mut e) => e.visibility = visibility,
+            kind => panic!("Visibility cannot be set on an {:?}", kind)
+        }
+    }
+
+    /// get the node's visibility
+    pub fn visibility(&self) -> Visibility {
+        match self {
+            NodeKind::Path(ref e) => e.visibility,
+            NodeKind::Image(ref e) => e.visibility,
+            NodeKind::Group(ref e) => e.visibility,
+            _ => Visible
+        }
+    }
+
 }
 
 
@@ -214,6 +233,9 @@ pub struct Group {
     /// it with a parent group using the specified opacity.
     pub opacity: Opacity,
 
+    /// Element visibility.
+    pub visibility: Visibility,
+
     /// Element clip path.
     pub clip_path: Option<String>,
 
@@ -245,6 +267,7 @@ impl Default for Group {
             id: String::new(),
             transform: Transform::default(),
             opacity: Opacity::default(),
+            visibility: Visibility::default(),
             clip_path: None,
             mask: None,
             filter: None,

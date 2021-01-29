@@ -4,7 +4,7 @@
 
 use svgtypes::Length;
 
-use crate::{svgtree, tree, tree::prelude::*, Error};
+use crate::{svgtree, tree, tree::prelude::*, Error, Visibility};
 
 mod clip;
 mod filter;
@@ -361,11 +361,13 @@ fn convert_group(
     let enable_background = node.attribute(AId::EnableBackground);
 
     let is_g_or_use = node.has_tag_name(EId::G) || node.has_tag_name(EId::Use);
+    let visibility: Visibility = node.attribute(AId::Visibility).unwrap_or_default();
     let required =
            opacity.value().fuzzy_ne(&1.0)
         || clip_path.is_some()
         || mask.is_some()
         || filter.is_some()
+        || !visibility.is_default()
         || !transform.is_default()
         || enable_background.is_some()
         || (is_g_or_use
@@ -384,6 +386,7 @@ fn convert_group(
             id,
             transform,
             opacity,
+            visibility,
             clip_path,
             mask,
             filter,

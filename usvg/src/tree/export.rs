@@ -477,7 +477,7 @@ fn conv_element(
             if !g.opacity.is_default() {
                 xml.write_svg_attribute(AId::Opacity, &g.opacity.value());
             }
-
+            xml.write_visibility(g.visibility);
             xml.write_transform(AId::Transform, g.transform);
 
             if let Some(eb) = g.enable_background {

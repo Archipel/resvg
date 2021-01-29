@@ -156,6 +156,15 @@ typedef struct resvg_transform {
 } resvg_transform;
 
 /**
+ * @brief List of visibility values
+ */
+typedef enum resvg_visibility {
+    VISIBLE,
+    HIDDEN,
+    COLLAPSE,
+} resvg_visibility;
+
+/**
  * @brief Initializes the library log.
  *
  * Use it if you want to see any warnings.
@@ -450,6 +459,15 @@ bool resvg_get_node_transform2(const resvg_render_tree *tree,
 bool resvg_set_node_transform(const resvg_render_tree *tree,
                               const char *id,
                               const resvg_transform *ts);
+
+//! get the visibility attribute value of a node
+resvg_visibility resvg_get_node_visibility(const resvg_render_tree *tree,
+		                                   const char *id);
+//! set the visibility attribute value of a node
+bool resvg_set_node_visibility(const resvg_render_tree *tree,
+                               const char *id,
+                               const resvg_visibility visibility);
+
 
 /**
  * @brief Returns node's bounding box by ID. The node's transformation and all its parent transformations are applied.

@@ -9,6 +9,7 @@ pub(crate) mod prelude {
 }
 
 use prelude::*;
+use usvg::Visibility::{Collapse, Hidden};
 
 
 /// Indicates the current rendering state.
@@ -156,6 +157,13 @@ fn render_group_impl(
     layers: &mut Layers,
     canvas: &mut tiny_skia::Canvas,
 ) -> Option<Rect> {
+    if g.visibility == Collapse {
+        return None;
+    }
+    else if g.visibility == Hidden || g.opacity == NormalizedValue::from(0.) {
+        return node.calculate_bbox(false);
+    }
+
     let sub_pixmap = layers.get()?;
     let mut sub_pixmap = sub_pixmap.borrow_mut();
 

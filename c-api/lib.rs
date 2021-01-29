@@ -9,7 +9,9 @@ use std::os::raw::c_char;
 use std::slice;
 
 use log::warn;
-use usvg::{NodeExt, SystemFontDB, Transform};
+use usvg::{NodeExt, SystemFontDB, Transform, Visibility};
+use usvg::Visibility::{Visible, Hidden, Collapse};
+use crate::resvg_visibility::VISIBLE;
 
 
 enum ErrorId {
@@ -47,6 +49,34 @@ pub struct resvg_transform {
     pub d: f64,
     pub e: f64,
     pub f: f64,
+}
+
+#[repr(C)]
+#[derive(Copy, Clone)]
+pub enum resvg_visibility {
+    VISIBLE,
+    HIDDEN,
+    COLLAPSE,
+}
+
+impl Into<Visibility> for resvg_visibility {
+    fn into(self) -> Visibility {
+        match self {
+            resvg_visibility::VISIBLE => Visible,
+            resvg_visibility::HIDDEN => Hidden,
+            resvg_visibility::COLLAPSE => Collapse
+        }
+    }
+}
+
+impl From<Visibility> for resvg_visibility {
+    fn from(vis: Visibility) -> Self {
+        match vis {
+            Visible => resvg_visibility::VISIBLE,
+            Hidden => resvg_visibility::HIDDEN,
+            Collapse => resvg_visibility::COLLAPSE
+        }
+    }
 }
 
 #[repr(C)]
@@ -544,6 +574,60 @@ pub extern "C" fn resvg_set_node_transform(
     }
 
     false
+}
+
+#[no_mangle]
+pub extern "C" fn resvg_set_node_visibility(
+    tree: *const resvg_render_tree,
+    id: *const c_char,
+    visibility: resvg_visibility
+) -> bool {
+    let id = match cstr_to_str(id) {
+        Some(v) => v,
+        None => {
+            warn!("Provided ID is no an UTF-8 string.");
+            return false;
+        }
+    };
+
+    let tree = unsafe {
+        assert!(!tree.is_null());
+        &*tree
+    };
+
+    if let Some(mut node) = tree.0.node_by_id(id) {
+        let mut node = node.borrow_mut();
+        node.set_visibility(visibility.into());
+
+        return true;
+    }
+
+    false
+}
+
+#[no_mangle]
+pub extern "C" fn resvg_get_node_visibility(
+    tree: *const resvg_render_tree,
+    id: *const c_char
+) -> resvg_visibility {
+    let id = match cstr_to_str(id) {
+        Some(v) => v,
+        None => {
+            warn!("Provided ID is no an UTF-8 string.");
+            return VISIBLE;
+        }
+    };
+
+    let tree = unsafe {
+        assert!(!tree.is_null());
+        &*tree
+    };
+
+    if let Some(node) = tree.0.node_by_id(id) {
+        return node.borrow().visibility().into();
+    }
+
+    return VISIBLE;
 }
 
 #[no_mangle]
