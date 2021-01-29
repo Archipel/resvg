@@ -638,13 +638,15 @@ pub extern "C" fn resvg_render(
 }
 
 #[no_mangle]
-pub extern "C" fn resvg_render_node(
+pub extern "C" fn resvg_render_node_offsetted(
     tree: *const resvg_render_tree,
     id: *const c_char,
     fit_to: resvg_fit_to,
     width: u32,
     height: u32,
     pixmap: *const c_char,
+    pixmap_offset_x: f32,
+    pixmap_offset_y: f32,
 ) -> bool {
     let tree = unsafe {
         assert!(!tree.is_null());
@@ -666,13 +668,24 @@ pub extern "C" fn resvg_render_node(
         let pixmap: &mut [u8] = unsafe { std::slice::from_raw_parts_mut(pixmap as *mut u8, pixmap_len) };
         let pixmap = tiny_skia::PixmapMut::from_bytes(pixmap, width, height).unwrap();
 
-        resvg::render_node(&node, fit_to.to_usvg(), pixmap).is_some()
+        resvg::render_node_offsetted(&node, fit_to.to_usvg(), pixmap, pixmap_offset_x, pixmap_offset_y).is_some()
     } else {
         warn!("A node with '{}' ID wasn't found.", id);
         false
     }
 }
 
+#[no_mangle]
+pub extern "C" fn resvg_render_node(
+    tree: *const resvg_render_tree,
+    id: *const c_char,
+    fit_to: resvg_fit_to,
+    width: u32,
+    height: u32,
+    pixmap: *const c_char,
+) -> bool {
+    resvg_render_node_offsetted(tree, id, fit_to, width, height, pixmap, 0., 0.)
+}
 
 /// A simple stderr logger.
 static LOGGER: SimpleLogger = SimpleLogger;

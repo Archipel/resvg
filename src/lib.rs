@@ -41,14 +41,16 @@ pub fn render(
     Some(())
 }
 
-/// Renders an SVG node to pixmap.
+/// Renders an SVG node to pixmap, using an offset
 ///
 /// If `fit_to` differs from `node.calculate_bbox()`,
 /// SVG would be scaled accordingly.
-pub fn render_node(
+pub fn render_node_offsetted(
     node: &usvg::Node,
     fit_to: usvg::FitTo,
     pixmap: tiny_skia::PixmapMut,
+    pixmap_offset_x: f32,
+    pixmap_offset_y: f32,
 ) -> Option<()> {
     let node_bbox = if let Some(bbox) = node.calculate_bbox(true) {
         bbox
@@ -64,6 +66,19 @@ pub fn render_node(
 
     let size = fit_to.fit_to(node_bbox.size().to_screen_size())?;
     let mut canvas = tiny_skia::Canvas::from(pixmap);
+    canvas.translate(pixmap_offset_x, pixmap_offset_y);
     render::render_node_to_canvas(node, vbox, size, &mut render::RenderState::Ok, &mut canvas);
     Some(())
+}
+
+/// Renders an SVG node to pixmap, with zero offset
+///
+/// If `fit_to` differs from `node.calculate_bbox()`,
+/// SVG would be scaled accordingly.
+pub fn render_node(
+    node: &usvg::Node,
+    fit_to: usvg::FitTo,
+    pixmap: tiny_skia::PixmapMut,
+) -> Option<()> {
+    render_node_offsetted(node, fit_to, pixmap, 0., 0.)
 }

@@ -518,6 +518,17 @@ bool resvg_render_node(const resvg_render_tree *tree,
                        uint32_t height,
                        char* pixmap);
 
+
+//! the same as resvg_render_node, but with an offset on the pixmap
+bool resvg_render_node_offsetted(const resvg_render_tree *tree,
+			                     const char *id,
+			                     resvg_fit_to fit_to,
+			                     uint32_t width,
+			                     uint32_t height,
+			                     char* pixmap,
+			                     float pixmap_offset_x,
+			                     float pixmap_offset_y);
+
 #ifdef __cplusplus
 }
 #endif
